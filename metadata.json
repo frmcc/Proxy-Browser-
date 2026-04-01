@@ -1,0 +1,5 @@
+{
+  "name": "Focus Browser",
+  "description": "A web browser that blocks images, videos, and downloads to help prevent phone addiction.",
+  "requestFramePermissions": []
+}
