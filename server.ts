@@ -3,6 +3,8 @@ import { createServer as createViteServer } from 'vite';
 import * as cheerio from 'cheerio';
 import path from 'path';
 
+const cookieStore = new Map<string, Map<string, string>>();
+
 async function startServer() {
   const app = express();
   const PORT = 3000;
@@ -30,6 +32,13 @@ async function startServer() {
       headers.set('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8');
       headers.set('Accept-Language', 'en-US,en;q=0.5');
 
+      const targetDomain = targetUrl.hostname;
+      const domainCookies = cookieStore.get(targetDomain) || new Map<string, string>();
+      if (domainCookies.size > 0) {
+        const cookieString = Array.from(domainCookies.entries()).map(([k, v]) => `${k}=${v}`).join('; ');
+        headers.set('Cookie', cookieString);
+      }
+
       const fetchOptions: RequestInit = {
         method: req.method,
         headers,
@@ -49,6 +58,21 @@ async function startServer() {
       }
 
       const response = await fetch(targetUrl.toString(), fetchOptions);
+
+      const setCookies = response.headers.getSetCookie ? response.headers.getSetCookie() : [];
+      if (setCookies.length > 0) {
+        setCookies.forEach(cookieStr => {
+          const parts = cookieStr.split(';');
+          const nameValue = parts[0].trim();
+          const splitIdx = nameValue.indexOf('=');
+          if (splitIdx !== -1) {
+            const name = nameValue.substring(0, splitIdx);
+            const value = nameValue.substring(splitIdx + 1);
+            domainCookies.set(name, value);
+          }
+        });
+        cookieStore.set(targetDomain, domainCookies);
+      }
 
       if ([301, 302, 303, 307, 308].includes(response.status)) {
         const location = response.headers.get('location');
@@ -89,16 +113,34 @@ async function startServer() {
 
         const appUrl = req.protocol + '://' + req.get('host');
 
-        $('head').prepend(`<base href="${targetUrl.toString()}">`);
+        const rewriteUrl = (url: string | undefined) => {
+          if (!url || url.startsWith('javascript:') || url.startsWith('mailto:') || url.startsWith('#') || url.startsWith('data:')) return url;
+          try {
+            const absoluteUrl = new URL(url, targetUrl.toString()).toString();
+            return `${appUrl}/api/proxy?url=${encodeURIComponent(absoluteUrl)}`;
+          } catch (e) {
+            return url;
+          }
+        };
 
         $('a').each((i, el) => {
           const href = $(el).attr('href');
-          if (href && !href.startsWith('javascript:') && !href.startsWith('mailto:') && !href.startsWith('#')) {
-            try {
-              const absoluteUrl = new URL(href, targetUrl.toString()).toString();
-              $(el).attr('href', `${appUrl}/api/proxy?url=${encodeURIComponent(absoluteUrl)}`);
-            } catch (e) {}
-          }
+          if (href) $(el).attr('href', rewriteUrl(href));
+        });
+
+        $('script').each((i, el) => {
+          const src = $(el).attr('src');
+          if (src) $(el).attr('src', rewriteUrl(src));
+        });
+
+        $('link').each((i, el) => {
+          const href = $(el).attr('href');
+          if (href) $(el).attr('href', rewriteUrl(href));
+        });
+
+        $('iframe').each((i, el) => {
+          const src = $(el).attr('src');
+          if (src) $(el).attr('src', rewriteUrl(src));
         });
 
         $('form').each((i, el) => {
