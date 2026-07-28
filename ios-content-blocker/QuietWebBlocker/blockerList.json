@@ -1,0 +1,36 @@
+[
+  {
+    "trigger": {
+      "url-filter": ".*",
+      "resource-type": ["image", "media"]
+    },
+    "action": {
+      "type": "block"
+    }
+  },
+  {
+    "trigger": {
+      "url-filter": "^https?://[^/]*(google|gstatic|recaptcha)\\.(com|net)/recaptcha/",
+      "resource-type": ["image"]
+    },
+    "action": {
+      "type": "ignore-previous-rules"
+    }
+  },
+  {
+    "trigger": {
+      "url-filter": ".*",
+      "resource-type": ["image"],
+      "if-domain": [
+        "*hcaptcha.com",
+        "*challenges.cloudflare.com",
+        "*arkoselabs.com",
+        "*funcaptcha.com",
+        "*akamai-sdk.net"
+      ]
+    },
+    "action": {
+      "type": "ignore-previous-rules"
+    }
+  }
+]
