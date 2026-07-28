@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Quiet Browser</title>
+<meta name="description" content="Browse the web without images or video.">
+<meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Quiet">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230071e3'/%3E%3Cpath d='M18 24h28M18 32h28M18 40h18' stroke='white' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f2f2f7;
+    --fg: #1c1c1e;
+    --muted: #6b6b70;
+    --field: #ffffff;
+    --line: rgba(0, 0, 0, 0.10);
+    --accent: #0071e3;
+    --chip: rgba(120, 120, 128, 0.14);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #000000;
+      --fg: #f2f2f7;
+      --muted: #8e8e93;
+      --field: #1c1c1e;
+      --line: rgba(255, 255, 255, 0.14);
+      --accent: #0a84ff;
+      --chip: rgba(120, 120, 128, 0.28);
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    padding: calc(env(safe-area-inset-top, 0px) + 2rem) 1.25rem calc(env(safe-area-inset-bottom, 0px) + 2rem);
+    background: var(--bg);
+    color: var(--fg);
+    font: 17px/1.5 -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  main { width: 100%; max-width: 30rem; text-align: center; }
+
+  .mark {
+    width: 60px; height: 60px; margin: 0 auto 1.25rem;
+    border-radius: 16px; background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .mark span {
+    display: block; width: 28px; height: 3px; border-radius: 2px;
+    background: #fff; position: relative;
+  }
+  .mark span::before, .mark span::after {
+    content: ''; position: absolute; left: 0; height: 3px; border-radius: 2px; background: #fff;
+  }
+  .mark span::before { top: -8px; width: 28px; }
+  .mark span::after { top: 8px; width: 18px; }
+
+  h1 { font-size: 1.6rem; letter-spacing: -0.02em; margin: 0 0 .35rem; }
+  .tagline { color: var(--muted); margin: 0 0 1.75rem; font-size: 1rem; }
+
+  form { display: flex; }
+  input[name="u"] {
+    flex: 1; min-width: 0; width: 100%;
+    padding: 1rem 1.15rem;
+    font-size: 1.05rem; font-family: inherit;
+    color: var(--fg); background: var(--field);
+    border: 1px solid var(--line); border-radius: 16px;
+    outline: none; transition: border-color .15s ease, box-shadow .15s ease;
+    -webkit-appearance: none;
+  }
+  input[name="u"]::placeholder { color: var(--muted); }
+  input[name="u"]:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent);
+  }
+
+  .note { margin: 1rem 0 0; font-size: .85rem; color: var(--muted); }
+
+  .shortcuts {
+    display: flex; flex-wrap: wrap; gap: .5rem; justify-content: center;
+    margin: 1.75rem 0 0; padding: 0; list-style: none;
+  }
+  .shortcuts a {
+    display: inline-block; padding: .45rem .85rem;
+    background: var(--chip); color: inherit; text-decoration: none;
+    border-radius: 999px; font-size: .875rem;
+  }
+  .shortcuts a:hover { background: color-mix(in srgb, var(--chip) 70%, var(--fg) 8%); }
+</style>
+</head>
+<body>
+<main>
+  <div class="mark" aria-hidden="true"><span></span></div>
+  <h1>Quiet Browser</h1>
+  <p class="tagline">The web, with the pictures turned off.</p>
+
+  <form method="get" action="/p" role="search">
+    <input
+      type="text"
+      name="u"
+      placeholder="Search or enter website name"
+      aria-label="Search or enter website name"
+      autocomplete="off"
+      autocapitalize="none"
+      autocorrect="off"
+      spellcheck="false"
+      enterkeyhint="go"
+      autofocus>
+  </form>
+
+  <p class="note">Images, video, audio, ads, and trackers are blocked.</p>
+
+  <ul class="shortcuts">
+    <li><a href="/p?u=https%3A%2F%2Fen.wikipedia.org%2F">Wikipedia</a></li>
+    <li><a href="/p?u=https%3A%2F%2Fnews.ycombinator.com%2F">Hacker News</a></li>
+    <li><a href="/p?u=https%3A%2F%2Flite.cnn.com%2F">CNN Lite</a></li>
+    <li><a href="/p?u=https%3A%2F%2Ftext.npr.org%2F">NPR Text</a></li>
+  </ul>
+</main>
+</body>
+</html>
