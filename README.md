@@ -86,6 +86,8 @@ javascript:location.href='https://YOUR-DEPLOYMENT/p?u='+encodeURIComponent(locat
 
 **With no `ACCESS_PASSWORD`, a public deployment is an open proxy.** Anyone who finds the URL can browse through it, and that traffic leaves your server's IP address. Set a password, or keep the deployment private.
 
+Failed logins are throttled per client address: five free attempts, then a lockout that doubles with each further failure up to fifteen minutes. The throttle gates on the attempt rather than the outcome, so a correct password is still refused while a lockout is active — otherwise an attacker could guess for free until they got lucky. A short numeric password is still a bad idea (seven digits is only ten million combinations), but throttling is what makes guessing impractical rather than merely slow. Use a passphrase if you can.
+
 Requests are checked before they're made: only `http` and `https`, a deny-list covering `localhost` and `.local`/`.internal` names, and DNS resolution checked against private, loopback, link-local, CGNAT, and cloud-metadata ranges for both IPv4 and IPv6 — including IPv4-mapped addresses in either notation, since `new URL()` rewrites `::ffff:127.0.0.1` to `::ffff:7f00:1`. Redirects are handed back to the browser rather than followed server-side, so every hop is re-validated and a public URL can't bounce the proxy into a private address.
 
 One gap worth naming: the hostname is resolved for the check and resolved again by `fetch`, leaving a DNS-rebinding window. Closing it means pinning the socket to the validated IP through a custom dispatcher, which breaks TLS certificate validation unless handled carefully. It hasn't been done here.

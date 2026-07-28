@@ -65,11 +65,67 @@ ${message ? `<p class="note">${escapeHtml(message)}</p>` : ''}
 </form>`);
 }
 
+/**
+ * Throttle password guessing. Without this, a short password is worth very
+ * little: an attacker can try the whole keyspace as fast as the server answers.
+ * Failures cost an exponentially growing lockout, per client address.
+ */
+const FAILURE_ALLOWANCE = 5;
+const LOCKOUT_BASE_MS = 2_000;
+const LOCKOUT_CEILING_MS = 15 * 60 * 1000;
+const attempts = new Map();
+
+function attemptKey(req) {
+  return req.ip || req.socket?.remoteAddress || 'unknown';
+}
+
+/** Milliseconds still to wait, or 0 when a guess is allowed. */
+function lockoutRemaining(key) {
+  const record = attempts.get(key);
+  if (!record) return 0;
+  return Math.max(0, record.until - Date.now());
+}
+
+function recordFailure(key) {
+  const record = attempts.get(key) ?? { failures: 0, until: 0 };
+  record.failures += 1;
+  if (record.failures > FAILURE_ALLOWANCE) {
+    const backoff = Math.min(LOCKOUT_BASE_MS * 2 ** (record.failures - FAILURE_ALLOWANCE - 1), LOCKOUT_CEILING_MS);
+    record.until = Date.now() + backoff;
+  }
+  attempts.set(key, record);
+}
+
+function clearFailures(key) {
+  attempts.delete(key);
+}
+
+// Forget idle records so the map cannot grow without bound.
+setInterval(() => {
+  const cutoff = Date.now() - LOCKOUT_CEILING_MS;
+  for (const [key, record] of attempts) {
+    if (record.until < cutoff) attempts.delete(key);
+  }
+}, 10 * 60 * 1000).unref();
+
 if (ACCESS_PASSWORD) {
   app.post('/__auth', express.urlencoded({ extended: false }), (req, res) => {
+    const key = attemptKey(req);
+    const wait = lockoutRemaining(key);
+    if (wait > 0) {
+      const seconds = Math.ceil(wait / 1000);
+      return res
+        .status(429)
+        .type('html')
+        .set('Retry-After', String(seconds))
+        .send(loginPage(`Too many attempts. Try again in ${seconds}s.`));
+    }
+
     if (!safeEqual(req.body?.password ?? '', ACCESS_PASSWORD)) {
+      recordFailure(key);
       return res.status(401).type('html').send(loginPage('That password did not match.'));
     }
+    clearFailures(key);
     const attributes = [`${AUTH_COOKIE}=${authToken()}`, 'Path=/', 'HttpOnly', 'SameSite=Lax', 'Max-Age=2592000'];
     if (req.secure) attributes.push('Secure');
     res.append('Set-Cookie', attributes.join('; '));
