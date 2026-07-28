@@ -10,7 +10,7 @@
   },
   {
     "trigger": {
-      "url-filter": "^https?://[^/]*(google|gstatic|recaptcha)\\.(com|net)/recaptcha/",
+      "url-filter": "^https?://([a-z0-9-]+\\.)*(google|gstatic|recaptcha)\\.(com|net)/recaptcha/",
       "resource-type": ["image"]
     },
     "action": {
