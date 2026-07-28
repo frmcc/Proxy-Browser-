@@ -39,14 +39,15 @@ npm test    # 127 tests, no network required
 
 ## Test it from your phone without deploying
 
-The server binds `0.0.0.0`, so with your computer and phone on the same Wi-Fi you can just run it and browse to your computer's address:
+The server binds `0.0.0.0` and prints the address your phone should use, so there is nothing to look up:
 
-```bash
-npm start
-ipconfig getifaddr en0    # macOS — prints something like 192.168.1.42
+```
+$ npm start
+media-free browser listening on http://localhost:3000
+  on your phone (same Wi-Fi): http://192.168.1.42:3000
 ```
 
-Then open `http://192.168.1.42:3000` on your phone. No signup, no deploy. It stops working once you close the laptop, which is what the next section is for.
+Type that second URL into Safari. No signup, no deploy. It stops working once you close the laptop, which is what the next section is for.
 
 ## Deploy it
 
