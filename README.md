@@ -37,7 +37,24 @@ Then open http://localhost:3000.
 npm test    # 127 tests, no network required
 ```
 
+## Test it from your phone without deploying
+
+The server binds `0.0.0.0`, so with your computer and phone on the same Wi-Fi you can just run it and browse to your computer's address:
+
+```bash
+npm start
+ipconfig getifaddr en0    # macOS — prints something like 192.168.1.42
+```
+
+Then open `http://192.168.1.42:3000` on your phone. No signup, no deploy. It stops working once you close the laptop, which is what the next section is for.
+
 ## Deploy it
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/frmcc/Proxy-Browser-)
+
+The `render.yaml` blueprint configures the service, generates a `SESSION_SECRET`, and prompts you for an `ACCESS_PASSWORD`. The free plan sleeps when idle, so the first request after a while takes a few seconds.
+
+Or run the container anywhere:
 
 ```bash
 docker build -t quiet-browser .
