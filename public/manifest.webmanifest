@@ -1,0 +1,19 @@
+{
+  "name": "Quiet Browser",
+  "short_name": "Quiet",
+  "description": "Browse the web without images, video, ads, or trackers.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f2f2f7",
+  "theme_color": "#f2f2f7",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%230071e3'/%3E%3Cpath d='M144 192h224M144 256h224M144 320h144' stroke='white' stroke-width='32' stroke-linecap='round'/%3E%3C/svg%3E",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
