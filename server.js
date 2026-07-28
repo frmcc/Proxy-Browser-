@@ -1,5 +1,6 @@
 import express from 'express';
 import crypto from 'node:crypto';
+import os from 'node:os';
 import path from 'node:path';
 import { Readable } from 'node:stream';
 import { fileURLToPath } from 'node:url';
@@ -345,8 +346,19 @@ app.use((error, _req, res, _next) => {
 
 startSweeper();
 
+/** Addresses another device on the same network can actually reach. */
+function lanAddresses() {
+  return Object.values(os.networkInterfaces())
+    .flat()
+    .filter((entry) => entry && entry.family === 'IPv4' && !entry.internal)
+    .map((entry) => entry.address);
+}
+
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`media-free browser listening on http://localhost:${PORT}`);
+  for (const address of lanAddresses()) {
+    console.log(`  on your phone (same Wi-Fi): http://${address}:${PORT}`);
+  }
   if (!ACCESS_PASSWORD) console.log('ACCESS_PASSWORD is unset — this instance is an open proxy.');
   if (/^(1|true|yes)$/i.test(process.env.ALLOW_PRIVATE_HOSTS ?? '')) {
     console.warn('ALLOW_PRIVATE_HOSTS is on — private and loopback addresses are reachable through this proxy.');
